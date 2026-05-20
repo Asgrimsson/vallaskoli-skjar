@@ -144,7 +144,9 @@ def init_db():
         "editor_blocks_Kennarastofa": '["announcements","events","weather","menu","thought","quickstats"]',
         "editor_blocks_Sjálfvirkt": '["menu","weather","announcements","images","events","thought","quickstats"]',
 
-        "public_base_url": "http://localhost:8501",
+        "public_base_url": "https://vallaskoli-skjar.onrender.com",
+        "show_proverb_all_screens": "1",
+        "show_ticker": "1",
         "use_playlists": "1",
         "playlist_schedule_enabled": "1",
         "default_playlist": "Sjálfgefin",
@@ -209,20 +211,21 @@ def init_db():
             cur.execute("INSERT INTO thoughts(text, active) VALUES (?, 1)", (t,))
 
 
-    cur.execute("SELECT COUNT(*) AS c FROM screen_devices")
-    if cur.fetchone()["c"] == 0:
-        default_devices = [
-            ("ANDDYRI-01", "Anddyri aðalskjár", "Anddyri", "Anddyri", "Sjálfvirkt", "Skjár við inngang / móttöku"),
-            ("MATSALUR-01", "Matsalur", "Matsalur", "Matsalur", "Hádegisspilun", "Matseðill og skilaboð í matsal"),
-            ("KENNARASTOFA-01", "Kennarastofa", "Kennarastofa", "Kennarastofa", "Sjálfvirkt", "Upplýsingar fyrir starfsfólk"),
-            ("GANGUR-YNGRA-01", "Gangur yngra stig", "Gangur", "Anddyri", "Morgunspilun", "Skjár á yngra stigi"),
-        ]
-        now = datetime.now().isoformat(timespec="seconds")
-        for code, name, location, mode, playlist, notes in default_devices:
-            cur.execute(
-                "INSERT OR IGNORE INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-                (code, name, location, mode, playlist, notes, now),
-            )
+    # Ensure standard Vallaskóli screen devices exist, also on already-initialized databases.
+    default_devices = [
+        ("ANDDYRI-01", "Aðalskjár", "Anddyri Vallaskóla", "Anddyri", "Morgunspilun", "Aðalskjár fyrir nemendur, starfsfólk og gesti"),
+        ("MATSALUR-01", "Matsalur", "Matsalur", "Matsalur", "Hádegisspilun", "Matseðill, léttar tilkynningar og myndir"),
+        ("KENNARASTOFA-01", "Kennarastofa", "Kennarastofa", "Kennarastofa", "Sjálfgefin", "Upplýsingar fyrir starfsfólk, fundir og viðburðir"),
+        ("GANGUR-YNGRA-01", "Gangur yngra stigs", "Yngra stig", "Anddyri", "Morgunspilun", "Barnvænar tilkynningar, myndir og góð hugsun dagsins"),
+        ("GANGUR-ELDRA-01", "Gangur eldra stigs", "Eldra stig", "Anddyri", "Sjálfgefin", "Viðburðir, félagslíf, próf og almennar tilkynningar"),
+        ("SKRIFSTOFA-01", "Skrifstofa", "Skrifstofa", "Anddyri", "Sjálfgefin", "Upplýsingar fyrir gesti og foreldra"),
+    ]
+    now = datetime.now().isoformat(timespec="seconds")
+    for code, name, location, mode, playlist, notes in default_devices:
+        cur.execute(
+            "INSERT OR IGNORE INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
+            (code, name, location, mode, playlist, notes, now),
+        )
 
     conn.commit()
     conn.close()

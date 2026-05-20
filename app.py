@@ -40,7 +40,7 @@ SHORT_WEEKDAYS = ["mán", "þri", "mið", "fim", "fös", "lau", "sun"]
 PRIORITY_ORDER = {"Áríðandi": 3, "Mikilvægt": 2, "Venjulegt": 1}
 SCREEN_MODES = ["Sjálfvirkt", "Anddyri", "Matsalur", "Kennarastofa"]
 
-VERSION = "v1.7"
+VERSION = "v1.8"
 BLOCKS = {
     "menu": "🍽️ Matseðill",
     "weather": "🌦️ Veður",
@@ -48,13 +48,14 @@ BLOCKS = {
     "images": "🖼️ Myndasýning",
     "events": "🗓️ Viðburðir",
     "thought": "💬 Góð hugsun",
+    "proverb": "📜 Málsháttur / orðtak",
     "quickstats": "⚡ Flýtikubbar",
 }
 DEFAULT_BLOCKS_BY_MODE = {
-    "Anddyri": ["announcements", "images", "events", "weather", "menu", "thought", "quickstats"],
-    "Matsalur": ["menu", "announcements", "weather", "thought", "images"],
-    "Kennarastofa": ["announcements", "events", "weather", "menu", "thought", "quickstats"],
-    "Sjálfvirkt": ["menu", "weather", "announcements", "images", "events", "thought", "quickstats"],
+    "Anddyri": ["announcements", "images", "events", "weather", "menu", "thought", "proverb", "quickstats"],
+    "Matsalur": ["menu", "announcements", "weather", "thought", "proverb", "images"],
+    "Kennarastofa": ["announcements", "events", "weather", "menu", "thought", "proverb", "quickstats"],
+    "Sjálfvirkt": ["menu", "weather", "announcements", "images", "events", "thought", "proverb", "quickstats"],
 }
 THEMES = {
     "Blár Vallaskóli": "#0f4c81",
@@ -62,6 +63,9 @@ THEMES = {
     "Fjólublár kennari": "#5b3fa3",
     "Gull og blár": "#b98500",
     "Rólegur dökkblár": "#183153",
+    "Norðurljós": "#006d77",
+    "Hlýr skóladagur": "#d97706",
+    "Bleikur föstudagur": "#be185d",
 }
 
 PLAYLISTS = {
@@ -72,11 +76,11 @@ PLAYLISTS = {
     "Viðburðaspilun": "Viðburðaspilun",
 }
 DEFAULT_PLAYLISTS = {
-    "Sjálfgefin": {"blocks": ["menu", "weather", "announcements", "images", "events", "thought", "quickstats"], "seconds": 12, "theme": "Blár Vallaskóli"},
-    "Morgunspilun": {"blocks": ["weather", "announcements", "events", "menu", "thought", "images"], "seconds": 12, "theme": "Blár Vallaskóli"},
+    "Sjálfgefin": {"blocks": ["menu", "weather", "announcements", "images", "events", "thought", "proverb", "quickstats"], "seconds": 12, "theme": "Blár Vallaskóli"},
+    "Morgunspilun": {"blocks": ["weather", "announcements", "events", "menu", "thought", "proverb", "images"], "seconds": 12, "theme": "Blár Vallaskóli"},
     "Hádegisspilun": {"blocks": ["menu", "announcements", "weather", "images", "thought"], "seconds": 14, "theme": "Grænn matsalur"},
-    "Lok dags": {"blocks": ["events", "announcements", "thought", "weather", "images"], "seconds": 16, "theme": "Fjólublár kennari"},
-    "Viðburðaspilun": {"blocks": ["events", "images", "announcements", "thought"], "seconds": 15, "theme": "Gull og blár"},
+    "Lok dags": {"blocks": ["events", "announcements", "thought", "proverb", "weather", "images"], "seconds": 16, "theme": "Fjólublár kennari"},
+    "Viðburðaspilun": {"blocks": ["events", "images", "announcements", "thought", "proverb"], "seconds": 15, "theme": "Gull og blár"},
 }
 
 
@@ -118,17 +122,22 @@ def css(mode="Sjálfvirkt", accent_override=None):
             border: 1px solid rgba(15,76,129,.12);
             box-shadow: 0 18px 55px rgba(15,76,129,.12);
             border-radius: 28px;
-            padding: 28px;
+            padding: 30px;
+            animation: cardIn .65s cubic-bezier(.2,.8,.2,1) both;
         }}
         .topbar {{
-            display:flex; align-items:center; justify-content:space-between; gap:20px;
-            padding: 18px 24px; border-radius: 28px;
-            background: linear-gradient(135deg, {accent}, #1b75bb);
-            color: white; box-shadow: 0 20px 60px rgba(15,76,129,.22);
-            margin-bottom: 18px;
+            display:flex; align-items:flex-start; justify-content:space-between; gap:28px;
+            padding: 26px 34px; border-radius: 34px;
+            background:
+              radial-gradient(circle at 8% 15%, rgba(255,255,255,.22), transparent 24%),
+              linear-gradient(135deg, {accent}, #1b75bb 58%, #0b4f7d);
+            color: white; box-shadow: 0 24px 70px rgba(15,76,129,.28);
+            margin-bottom: 22px; position:relative; overflow:hidden;
+            animation: fadeSlideIn .75s ease both;
         }}
-        .brand {{ display:flex; align-items:center; gap:18px; }}
-        .logo-badge {{ width:82px; height:62px; border-radius:18px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12); overflow:hidden; padding:6px; }}
+        .topbar:after {{ content:""; position:absolute; inset:-60% -20%; background:linear-gradient(110deg, transparent, rgba(255,255,255,.18), transparent); transform:translateX(-70%); animation: shimmer 7s ease-in-out infinite; }}
+        .brand {{ display:flex; align-items:center; gap:24px; position:relative; z-index:2; min-width:0; }}
+        .logo-badge {{ width:112px; height:86px; border-radius:22px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12), 0 12px 32px rgba(0,0,0,.16); overflow:hidden; padding:8px; flex:0 0 auto; }}
         .logo-badge img {{ max-width:100%; max-height:100%; object-fit:contain; display:block; }}
         .admin-quick {{ background:linear-gradient(135deg, rgba(15,76,129,.08), rgba(255,200,87,.12)); border:1px solid rgba(15,76,129,.12); border-radius:22px; padding:18px; margin-bottom:14px; }}
         .admin-quick h3 {{ margin:0 0 6px; }}
@@ -144,12 +153,12 @@ def css(mode="Sjálfvirkt", accent_override=None):
         .slide-dots {{ display:flex; gap:8px; justify-content:center; margin:12px 0 4px; }}
         .slide-dot {{ width:12px; height:12px; border-radius:999px; background:rgba(15,76,129,.18); }}
         .slide-dot.active {{ background:{accent}; transform:scale(1.35); }}
-        .brand-title {{ font-size: clamp(28px, 4vw, 54px); line-height:1; font-weight:900; letter-spacing:-.04em; }}
-        .brand-sub {{ font-size: 18px; opacity:.88; margin-top:6px; }}
-        .clock {{ text-align:right; }}
+        .brand-title {{ font-size: clamp(36px, 5vw, 64px); line-height:.95; font-weight:950; letter-spacing:-.05em; margin-bottom:10px; }}
+        .brand-sub {{ font-size: clamp(18px, 1.7vw, 24px); opacity:.90; margin-top:2px; line-height:1.25; }}
+        .clock {{ text-align:right; position:relative; z-index:2; }}
         .clock-time {{ font-size: clamp(34px, 5vw, 72px); font-weight:900; letter-spacing:-.05em; line-height:.9; }}
         .clock-date {{ font-size:20px; opacity:.88; margin-top:8px; }}
-        .mode-pill {{ display:inline-block; background:rgba(255,255,255,.18); padding:8px 13px; border-radius:999px; margin-top:8px; font-weight:800; }}
+        .mode-pill {{ display:inline-block; background:rgba(255,255,255,.20); padding:10px 16px; border-radius:999px; margin-top:14px; font-weight:900; backdrop-filter:blur(8px); }}
         .metric {{ font-size: clamp(36px, 5vw, 76px); font-weight: 900; letter-spacing:-.05em; color:{accent}; line-height:1; }}
         .label {{ text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:900; color:#557086; }}
         .big-title {{ font-size: clamp(30px, 4.2vw, 62px); font-weight: 950; letter-spacing:-.045em; color:#102033; line-height:1.02; margin-bottom:12px; }}
@@ -173,6 +182,27 @@ def css(mode="Sjálfvirkt", accent_override=None):
         .footer-note {{ text-align:center; color:#6b8296; font-size:15px; margin-top:12px; }}
         .stButton>button {{ border-radius: 14px; font-weight: 850; }}
         div[data-testid="stMetricValue"] {{ font-size: 2.4rem; }}
+
+        .proverb-card {{
+            background:
+              radial-gradient(circle at top left, rgba(255,200,87,.30), transparent 34%),
+              linear-gradient(135deg, rgba(255,255,255,.96), rgba(238,247,255,.88));
+            border:1px solid rgba(185,133,0,.22); border-radius:28px; padding:26px;
+            box-shadow:0 18px 55px rgba(15,76,129,.12); position:relative; overflow:hidden;
+            animation: cardIn .7s ease both;
+        }}
+        .proverb-card:before {{ content:"❦"; position:absolute; right:18px; top:4px; font-size:72px; opacity:.08; color:{accent}; }}
+        .proverb-text {{ font-size:clamp(26px,3vw,48px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
+        .proverb-meaning {{ margin-top:14px; font-size:clamp(18px,1.6vw,25px); color:#40576e; line-height:1.25; }}
+        .screen-ticker {{ position:fixed; left:24px; right:24px; bottom:16px; z-index:999; border-radius:999px; padding:10px 18px; background:rgba(16,32,51,.86); color:#fff; box-shadow:0 15px 45px rgba(0,0,0,.18); overflow:hidden; backdrop-filter:blur(10px); }}
+        .ticker-inner {{ white-space:nowrap; display:inline-block; padding-left:100%; animation:ticker 38s linear infinite; font-weight:850; letter-spacing:.02em; }}
+        @keyframes fadeSlideIn {{ from {{ opacity:0; transform:translateY(-16px); }} to {{ opacity:1; transform:translateY(0); }} }}
+        @keyframes cardIn {{ from {{ opacity:0; transform:translateY(22px) scale(.985); }} to {{ opacity:1; transform:translateY(0) scale(1); }} }}
+        @keyframes shimmer {{ 0%,55% {{ transform:translateX(-70%); }} 75%,100% {{ transform:translateX(70%); }} }}
+        @keyframes ticker {{ from {{ transform:translateX(0); }} to {{ transform:translateX(-100%); }} }}
+        @media (max-width: 900px) {{
+          .topbar {{ flex-direction:column; }} .clock {{ text-align:left; }} .logo-badge {{ width:96px; height:74px; }}
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -286,6 +316,53 @@ def get_theme_accent(settings, mode):
     return THEMES.get(get_editor_theme(settings, mode), "#0f4c81")
 
 
+
+PROVERBS = [
+    ("Betra er seint en aldrei.", "Það er betra að gera gott verk seint en að gera það aldrei."),
+    ("Margt smátt gerir eitt stórt.", "Mörg lítil skref geta saman orðið að stórum árangri."),
+    ("Ekki er allt gull sem glóir.", "Það sem virðist flott er ekki alltaf best eða rétt."),
+    ("Æfingin skapar meistarann.", "Við verðum betri með því að æfa okkur aftur og aftur."),
+    ("Enginn verður óbarinn biskup.", "Það þarf oft vinnu og reynslu til að ná góðum árangri."),
+    ("Betri er einn fugl í hendi en tveir í skógi.", "Það sem við höfum öruggt getur verið betra en óviss von."),
+    ("Góð byrjun er hálfnað verk.", "Þegar við byrjum vel verður verkefnið auðveldara."),
+    ("Oft má satt kyrrt liggja.", "Stundum er betra að hugsa áður en maður talar."),
+    ("Sá sem spyr, lærir.", "Spurningar hjálpa okkur að skilja betur."),
+    ("Það læra börnin sem fyrir þeim er haft.", "Við lærum mikið af fyrirmyndum okkar."),
+    ("Drjúgt er það sem drýpur.", "Smá vinna á hverjum degi skilar miklu með tímanum."),
+    ("Viljinn dregur hálft hlass.", "Áhugi og jákvætt hugarfar hjálpa okkur áfram."),
+    ("Samhentir kraftar flytja fjöll.", "Þegar við vinnum saman getum við gert stóra hluti."),
+    ("Hver er sinnar gæfu smiður.", "Við höfum áhrif á eigin árangur með vali okkar og vinnu."),
+    ("Lengi býr að fyrstu gerð.", "Góð undirstaða skiptir miklu máli."),
+]
+
+
+def proverb_of_the_day():
+    idx = date.today().toordinal() % len(PROVERBS)
+    return PROVERBS[idx]
+
+
+def render_proverb_card(compact=False):
+    text, meaning = proverb_of_the_day()
+    st.markdown('<div class="proverb-card">', unsafe_allow_html=True)
+    st.markdown('<div class="label">Málsháttur / orðtak dagsins</div>', unsafe_allow_html=True)
+    size = 'style="font-size:32px;"' if compact else ''
+    st.markdown(f'<div class="proverb-text" {size}>“{h(text)}”</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="proverb-meaning"><b>Merking:</b> {h(meaning)}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+def render_ticker(settings, menu, announcements):
+    if settings.get("show_ticker", "1") != "1":
+        return
+    parts = ["Vallaskóli"]
+    if menu:
+        parts.append(f"Í matinn í dag: {menu.get('title','')}")
+    for a in announcements[:3]:
+        parts.append(f"{a['title']}: {a['body']}")
+    text = "  •  ".join([p for p in parts if p])
+    st.markdown(f'<div class="screen-ticker"><div class="ticker-inner">{h(text)}</div></div>', unsafe_allow_html=True)
+
+
 def render_quickstats(settings, weather, events):
     st.markdown('<div class="hero-card">', unsafe_allow_html=True)
     st.markdown('<div class="label">Flýtikubbar</div>', unsafe_allow_html=True)
@@ -323,6 +400,8 @@ def render_block_by_id(block_id, menu, weather, settings, announcements, events,
         render_events_panel(events)
     elif block_id == "thought":
         render_thought(thoughts)
+    elif block_id == "proverb":
+        render_proverb_card()
     elif block_id == "quickstats":
         render_quickstats(settings, weather, events)
     else:
@@ -413,7 +492,10 @@ def render_playlist_screen(settings, mode, playlist_name, menu, weather, announc
             st.markdown(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('<br>', unsafe_allow_html=True)
-        side_candidates = [b for b in ["images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb" and "proverb" not in blocks:
+            render_proverb_card(compact=True)
+            st.markdown('<br>', unsafe_allow_html=True)
+        side_candidates = [b for b in ["proverb", "images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
         if side_candidates:
             render_block_by_id(side_candidates[0], menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
 
@@ -440,7 +522,10 @@ def render_editor_controlled_screen(settings, mode, menu, weather, announcements
         st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('<br>', unsafe_allow_html=True)
         # Sýnum alltaf nytsamlegan aukakubb við hliðina án þess að trufla aðalspilun.
-        side_candidates = [b for b in ["images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb" and "proverb" not in blocks:
+            render_proverb_card(compact=True)
+            st.markdown('<br>', unsafe_allow_html=True)
+        side_candidates = [b for b in ["proverb", "images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
         if side_candidates:
             render_block_by_id(side_candidates[0], menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
 
@@ -993,6 +1078,7 @@ def screen_page():
 
     if settings.get("use_playlists", "1") == "1":
         render_playlist_screen(settings, mode, playlist_name, menu, weather, announcements, events, thoughts, images)
+        render_ticker(settings, menu, announcements)
     elif settings.get("use_screen_editor", "1") == "1":
         render_editor_controlled_screen(settings, mode, menu, weather, announcements, events, thoughts, images)
     elif mode == "Matsalur":
@@ -1001,6 +1087,7 @@ def screen_page():
             render_menu_card(menu, mode)
             st.markdown("<br>", unsafe_allow_html=True)
             render_thought(thoughts)
+            render_proverb_card()
         with right:
             render_announcements(announcements, limit=3)
             st.markdown("<br>", unsafe_allow_html=True)
@@ -1527,17 +1614,23 @@ def admin_page():
                 index=list(THEMES.keys()).index(get_editor_theme(settings, mode_to_edit)) if get_editor_theme(settings, mode_to_edit) in THEMES else 0,
             )
             seconds = st.number_input("Hversu lengi birtist hver kubbur?", min_value=5, max_value=120, value=get_editor_seconds(settings, mode_to_edit), step=1)
+            layout_style = st.selectbox("Útlitsstilling", ["Deluxe", "Standard", "Compact"], index=0, help="Fyrir næstu útgáfur: deluxe gefur stærri, sjónrænni skjá; compact hentar smærri skjám.")
+            animation_style = st.selectbox("Hreyfing / animation", ["Mjúk hreyfing", "Rólegt", "Meiri orka"], index=0)
+            show_proverb = st.checkbox("Sýna málshátt/orðtak dagsins á öllum skjám", value=settings.get("show_proverb_all_screens", "1") == "1")
+            show_ticker = st.checkbox("Sýna rennilínu neðst með stuttum skilaboðum", value=settings.get("show_ticker", "1") == "1")
             st.markdown("#### Röð kubba")
             st.caption("Veldu kubb í hvert sæti. Sama kubb má velja oftar en kerfið fjarlægir tvítekin sæti þegar vistað er.")
             chosen = []
-            for i in range(7):
+            for i in range(8):
                 default = current_blocks[i] if i < len(current_blocks) else ""
                 idx = block_options.index(default) if default in block_options else 0
                 chosen.append(st.selectbox(f"Sæti {i+1}", block_options, index=idx, format_func=lambda x: block_labels.get(x, x), key=f"editor_{key}_{i}"))
-            c1, c2 = st.columns(2)
-            save = c1.form_submit_button("Vista skjáritstjóra", use_container_width=True)
-            reset = c2.form_submit_button("Endurstilla þennan skjáham", use_container_width=True)
-            if save:
+            c1, c2, c3, c4 = st.columns(4)
+            save = c1.form_submit_button("Vista þennan skjáham", use_container_width=True)
+            apply_all = c2.form_submit_button("Apply to all screens", use_container_width=True)
+            apply_matsalur = c3.form_submit_button("Apply only to Matsalur", use_container_width=True)
+            reset = c4.form_submit_button("Endurstilla", use_container_width=True)
+            if save or apply_all or apply_matsalur:
                 cleaned = []
                 for b in chosen:
                     if b and b in BLOCKS and b not in cleaned:
@@ -1545,9 +1638,22 @@ def admin_page():
                 if not cleaned:
                     cleaned = DEFAULT_BLOCKS_BY_MODE.get(mode_to_edit, DEFAULT_BLOCKS_BY_MODE["Sjálfvirkt"])
                 db.set_setting("use_screen_editor", "1" if use_editor else "0")
-                db.set_setting(f"editor_blocks_{key}", json.dumps(cleaned, ensure_ascii=False))
-                db.set_setting(f"editor_seconds_{key}", str(seconds))
-                db.set_setting(f"editor_theme_{key}", theme)
+                db.set_setting("show_proverb_all_screens", "1" if show_proverb else "0")
+                db.set_setting("show_ticker", "1" if show_ticker else "0")
+                db.set_setting(f"editor_layout_{key}", layout_style)
+                db.set_setting(f"editor_animation_{key}", animation_style)
+                target_modes = [mode_to_edit]
+                if apply_all:
+                    target_modes = ["Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"]
+                elif apply_matsalur:
+                    target_modes = ["Matsalur"]
+                for target in target_modes:
+                    tkey = get_mode_key(target)
+                    db.set_setting(f"editor_blocks_{tkey}", json.dumps(cleaned, ensure_ascii=False))
+                    db.set_setting(f"editor_seconds_{tkey}", str(seconds))
+                    db.set_setting(f"editor_theme_{tkey}", theme)
+                    db.set_setting(f"editor_layout_{tkey}", layout_style)
+                    db.set_setting(f"editor_animation_{tkey}", animation_style)
                 st.success("Skjáritstjóri vistaður.")
                 st.rerun()
             if reset:
@@ -1561,7 +1667,10 @@ def admin_page():
         st.markdown("#### Núverandi spilun")
         chips = "".join(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>' for b in saved_blocks)
         st.markdown(f'<div class="editor-preview">{chips}</div>', unsafe_allow_html=True)
-        st.link_button(f"Opna forskoðun: {mode_to_edit}", screen_url(mode_to_edit), use_container_width=True)
+        p1, p2, p3 = st.columns(3)
+        p1.link_button(f"Preview mode: {mode_to_edit}", screen_url(mode_to_edit), use_container_width=True)
+        p2.link_button("Preview Matsalur", "https://vallaskoli-skjar.onrender.com/?view=skjar&device=MATSALUR-01", use_container_width=True)
+        p3.link_button("Preview Kennarastofa", "https://vallaskoli-skjar.onrender.com/?view=skjar&device=KENNARASTOFA-01", use_container_width=True)
 
         st.markdown("#### Tillögur að uppsetningu")
         st.info("Anddyri: Tilkynningar → Myndir → Viðburðir → Veður.  Matsalur: Matseðill → Tilkynningar → Veður.  Kennarastofa: Tilkynningar → Viðburðir → Veður → Matseðill.")

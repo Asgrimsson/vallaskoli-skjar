@@ -1,16 +1,21 @@
-# Vallaskóli Skjár v1.7 — Skjápar og QR-tenging
+# Vallaskóli Skjár v1.8
 
-Python/Streamlit upplýsingaskjár fyrir Vallaskóla.
+Upplýsingaskjár fyrir Vallaskóla með stjórnborði, matseðli, veðri, viðburðum, myndasýningu, skjápar/QR, spilunarlistum, fancy UI og málshætti/orðtaki dagsins.
 
-## Nýtt í v1.7
+## Nýtt í v1.8
 
-- Skjápar: hver skjár fær eigið auðkenni, t.d. `ANDDYRI-01` eða `MATSALUR-01`.
-- QR-kóði fyrir hvern skjá í stjórnborði.
-- Hver skjár getur haft sinn skjáham og spilunarlista.
-- Stjórnborð sýnir síðast hvenær skjárinn var opnaður.
-- Opinber grunnslóð er stillanleg fyrir Render eða localhost.
+- Stærra Vallaskóla-logo og betra bil í haus.
+- Mjúkar hreyfingar, shimmer í haus, fade/slide animation á kortum.
+- Málsháttur / orðtak dagsins birtist sjálfkrafa á skjám.
+- Rennilína/ticker neðst með stuttum skilaboðum.
+- Fleiri þemu: Norðurljós, Hlýr skóladagur, Bleikur föstudagur.
+- Skjáritstjóri með fleiri valmöguleikum.
+- Preview mode í stjórnborði.
+- Apply to all screens.
+- Apply only to Matsalur.
+- Sérslóðir fyrir skjái eru áfram með `?view=skjar&device=...`.
 
-## Keyrsla
+## Keyrsla staðbundið
 
 ```bash
 python -m venv .venv
@@ -19,49 +24,46 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Render start command
+
+```bash
+streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+```
+
 ## Slóðir
 
 Stjórnborð:
 
 ```text
-http://localhost:8501/?view=admin
+https://vallaskoli-skjar.onrender.com/?view=admin
 ```
 
-Venjulegur skjár:
+Skjáir:
 
 ```text
-http://localhost:8501/?view=skjar
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=ANDDYRI-01
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=MATSALUR-01
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=KENNARASTOFA-01
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=GANGUR-YNGRA-01
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=GANGUR-ELDRA-01
+https://vallaskoli-skjar.onrender.com/?view=skjar&device=SKRIFSTOFA-01
 ```
 
-Skjár með auðkenni:
+## Uppfærsla
 
-```text
-http://localhost:8501/?view=skjar&device=ANDDYRI-01
-```
-
-## Sjálfgefið lykilorð
-
-```text
-vallaskoli123
-```
-
-Breyttu því í stjórnborði undir **Stillingar**.
-
-## Uppfærsla frá eldri útgáfu
-
-Unzip-aðu yfir eldri möppu, en haltu eftir þessum möppum ef þú ert með gögn:
+Afritaðu skrárnar yfir eldri möppu, en varðveittu:
 
 ```text
 data/
 uploads/
 ```
 
-## Skjáuppsetning
+Svo:
 
-1. Opnaðu stjórnborð.
-2. Farðu í **Skjápar & QR**.
-3. Stilltu opinbera grunnslóð, t.d. `http://localhost:8501` eða Render-slóðina.
-4. Búðu til eða veldu skjá.
-5. Skannaðu QR-kóðann á skjátölvunni eða afritaðu slóðina.
-6. Ýttu á F11 fyrir fullscreen.
+```bash
+git add .
+git commit -m "Vallaskoli Skjar v1.8 fancy UI og malshettir"
+git push origin main
+```
 
+Render ætti þá að deploy-a sjálfkrafa.
