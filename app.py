@@ -1817,7 +1817,9 @@ def admin_page():
                 path = UPLOAD_DIR / img["filename"]
                 if path.exists():
                     st.image(str(path), caption=img["caption"], use_container_width=True)
-                    st.caption(f"Birting: {image_row_value(img, 'target_modes', '[\"Allir\"]')} · Staðsetning: {image_row_value(img, 'placement', 'Aðalmyndasýning')}")
+                    target_modes_text = image_row_value(img, "target_modes", "[\"Allir\"]")
+                    placement_text = image_row_value(img, "placement", "Aðalmyndasýning")
+                    st.caption(f"Birting: {target_modes_text} · Staðsetning: {placement_text}")
                 if st.button("Eyða mynd", key=f"img_del_{img['id']}"):
                     fname = db.delete_image(img["id"])
                     if fname:
