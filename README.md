@@ -1,19 +1,24 @@
-# Vallaskóli Skjár v1.8
+# Vallaskóli Skjár v1.9
 
-Upplýsingaskjár fyrir Vallaskóla með stjórnborði, matseðli, veðri, viðburðum, myndasýningu, skjápar/QR, spilunarlistum, fancy UI og málshætti/orðtaki dagsins.
+Upplýsingaskjár fyrir Vallaskóla með stjórnborði, skjáauðkennum, sjálfvirkum sérslóðum, matseðli, veðri, viðburðum, myndasýningu og skjáritstjóra.
 
-## Nýtt í v1.8
+## Nýtt í v1.9
 
-- Stærra Vallaskóla-logo og betra bil í haus.
-- Mjúkar hreyfingar, shimmer í haus, fade/slide animation á kortum.
-- Málsháttur / orðtak dagsins birtist sjálfkrafa á skjám.
-- Rennilína/ticker neðst með stuttum skilaboðum.
-- Fleiri þemu: Norðurljós, Hlýr skóladagur, Bleikur föstudagur.
-- Skjáritstjóri með fleiri valmöguleikum.
-- Preview mode í stjórnborði.
-- Apply to all screens.
-- Apply only to Matsalur.
-- Sérslóðir fyrir skjái eru áfram með `?view=skjar&device=...`.
+- Sérslóðir fyrir alla staðlaða skjái vistast sjálfkrafa í gagnagrunni.
+- Opinber grunnslóð er sjálfgefið `https://vallaskoli-skjar.onrender.com`.
+- Skjáir sem stofnast sjálfkrafa:
+  - ANDDYRI-01
+  - MATSALUR-01
+  - KENNARASTOFA-01
+  - GANGUR-YNGRA-01
+  - GANGUR-ELDRA-01
+  - SKRIFSTOFA-01
+- Betri myndastýring:
+  - velja hvaða skjáhamir eiga að sýna mynd
+  - velja staðsetningu myndar: aðalmyndasýning, hægri hlið, bakgrunnur/hero eða alls staðar
+  - forgangur mynda
+  - fleiri myndaútlit í skjáritstjóra
+- Skjáritstjóri með Apply to all screens, Apply only to Matsalur og Apply only to Kennarastofa.
 
 ## Keyrsla staðbundið
 
@@ -30,40 +35,13 @@ streamlit run app.py
 streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
 ```
 
-## Slóðir
+## Mikilvægt við uppfærslu
 
-Stjórnborð:
-
-```text
-https://vallaskoli-skjar.onrender.com/?view=admin
-```
-
-Skjáir:
-
-```text
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=ANDDYRI-01
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=MATSALUR-01
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=KENNARASTOFA-01
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=GANGUR-YNGRA-01
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=GANGUR-ELDRA-01
-https://vallaskoli-skjar.onrender.com/?view=skjar&device=SKRIFSTOFA-01
-```
-
-## Uppfærsla
-
-Afritaðu skrárnar yfir eldri möppu, en varðveittu:
+Haldið í þessar möppur ef gögn eru komin inn:
 
 ```text
 data/
 uploads/
 ```
 
-Svo:
-
-```bash
-git add .
-git commit -m "Vallaskoli Skjar v1.8 fancy UI og malshettir"
-git push origin main
-```
-
-Render ætti þá að deploy-a sjálfkrafa.
+Render sér um að deploy-a sjálfkrafa þegar breytingum er ýtt á GitHub.

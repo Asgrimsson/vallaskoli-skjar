@@ -5,6 +5,7 @@ from datetime import date, datetime
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "vallaskoli_skjar.db"
+PUBLIC_RENDER_URL = "https://vallaskoli-skjar.onrender.com"
 
 DATA_DIR.mkdir(exist_ok=True)
 
@@ -85,6 +86,17 @@ def init_db():
         )
     """)
 
+    # Upgrade image table for v1.9 image targeting/placement.
+    for sql in [
+        "ALTER TABLE images ADD COLUMN target_modes TEXT DEFAULT '[\"Allir\"]'",
+        "ALTER TABLE images ADD COLUMN placement TEXT DEFAULT 'Aðalmyndasýning'",
+        "ALTER TABLE images ADD COLUMN weight INTEGER DEFAULT 1",
+    ]:
+        try:
+            cur.execute(sql)
+        except sqlite3.OperationalError:
+            pass
+
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS screen_devices (
@@ -100,6 +112,12 @@ def init_db():
             last_seen TEXT DEFAULT ''
         )
     """)
+
+    # Upgrade screen table for v1.9 stored direct URLs.
+    try:
+        cur.execute("ALTER TABLE screen_devices ADD COLUMN url TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
 
     defaults = {
         "school_name": "Vallaskóli",
@@ -147,6 +165,9 @@ def init_db():
         "public_base_url": "https://vallaskoli-skjar.onrender.com",
         "show_proverb_all_screens": "1",
         "show_ticker": "1",
+        "show_image_sidebar": "1",
+        "image_layout_default": "Stór mynd + texti",
+        "image_fit_default": "Fylla ramma",
         "use_playlists": "1",
         "playlist_schedule_enabled": "1",
         "default_playlist": "Sjálfgefin",
@@ -174,6 +195,14 @@ def init_db():
     }
     for key, value in defaults.items():
         cur.execute("INSERT OR IGNORE INTO settings(key, value) VALUES (?, ?)", (key, value))
+
+    # Render migration: if this database still has localhost from an older version, switch QR/direct URLs to the live site.
+    row = cur.execute("SELECT value FROM settings WHERE key='public_base_url'").fetchone()
+    if not row or row["value"].strip() in ("", "http://localhost:8501"):
+        cur.execute(
+            "INSERT INTO settings(key, value) VALUES ('public_base_url', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (PUBLIC_RENDER_URL,),
+        )
 
     cur.execute("SELECT COUNT(*) AS c FROM menu_items")
     if cur.fetchone()["c"] == 0:
@@ -221,10 +250,17 @@ def init_db():
         ("SKRIFSTOFA-01", "Skrifstofa", "Skrifstofa", "Anddyri", "Sjálfgefin", "Upplýsingar fyrir gesti og foreldra"),
     ]
     now = datetime.now().isoformat(timespec="seconds")
+    base_row = cur.execute("SELECT value FROM settings WHERE key='public_base_url'").fetchone()
+    base_url = (base_row["value"] if base_row else PUBLIC_RENDER_URL).strip().rstrip("/") or PUBLIC_RENDER_URL
     for code, name, location, mode, playlist, notes in default_devices:
+        direct_url = f"{base_url}/?view=skjar&device={code}"
         cur.execute(
-            "INSERT OR IGNORE INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?)",
-            (code, name, location, mode, playlist, notes, now),
+            "INSERT OR IGNORE INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at, url) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)",
+            (code, name, location, mode, playlist, notes, now, direct_url),
+        )
+        cur.execute(
+            "UPDATE screen_devices SET url=? WHERE code=? AND (url IS NULL OR url='' OR url LIKE 'http://localhost:%')",
+            (direct_url, code),
         )
 
     conn.commit()
@@ -376,11 +412,14 @@ def delete_thought(item_id):
     conn.close()
 
 
-def add_image(filename, caption=""):
+def add_image(filename, caption="", target_modes=None, placement="Aðalmyndasýning", weight=1):
     conn = connect()
+    if target_modes is None:
+        target_modes = ["Allir"]
+    import json
     conn.execute(
-        "INSERT INTO images(filename, caption, active, uploaded_at) VALUES (?, ?, 1, ?)",
-        (filename, caption, datetime.now().isoformat(timespec="seconds")),
+        "INSERT INTO images(filename, caption, active, uploaded_at, target_modes, placement, weight) VALUES (?, ?, 1, ?, ?, ?, ?)",
+        (filename, caption, datetime.now().isoformat(timespec="seconds"), json.dumps(target_modes, ensure_ascii=False), placement, int(weight or 1)),
     )
     conn.commit()
     conn.close()
@@ -389,11 +428,25 @@ def add_image(filename, caption=""):
 def list_images(active_only=True):
     conn = connect()
     if active_only:
-        rows = conn.execute("SELECT * FROM images WHERE active=1 ORDER BY uploaded_at DESC").fetchall()
+        rows = conn.execute("SELECT * FROM images WHERE active=1 ORDER BY weight DESC, uploaded_at DESC").fetchall()
     else:
-        rows = conn.execute("SELECT * FROM images ORDER BY active DESC, uploaded_at DESC").fetchall()
+        rows = conn.execute("SELECT * FROM images ORDER BY active DESC, weight DESC, uploaded_at DESC").fetchall()
     conn.close()
     return rows
+
+
+def list_images_for_mode(mode="Sjálfvirkt", active_only=True):
+    import json
+    rows = list_images(active_only=active_only)
+    visible = []
+    for r in rows:
+        try:
+            targets = json.loads(r["target_modes"] or '["Allir"]')
+        except Exception:
+            targets = ["Allir"]
+        if "Allir" in targets or mode in targets:
+            visible.append(r)
+    return visible
 
 
 def delete_image(item_id):
@@ -426,20 +479,36 @@ def get_screen_device(code):
 def upsert_screen_device(code, name, location, mode, playlist, active=True, notes=""):
     conn = connect()
     now = datetime.now().isoformat(timespec="seconds")
+    code_clean = code.strip().upper()
+    base_row = conn.execute("SELECT value FROM settings WHERE key='public_base_url'").fetchone()
+    base_url = (base_row["value"] if base_row else PUBLIC_RENDER_URL).strip().rstrip("/") or PUBLIC_RENDER_URL
+    direct_url = f"{base_url}/?view=skjar&device={code_clean}"
     conn.execute(
         """
-        INSERT INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO screen_devices(code, name, location, mode, playlist, active, notes, created_at, url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(code) DO UPDATE SET
             name=excluded.name,
             location=excluded.location,
             mode=excluded.mode,
             playlist=excluded.playlist,
             active=excluded.active,
-            notes=excluded.notes
+            notes=excluded.notes,
+            url=excluded.url
         """,
-        (code.strip().upper(), name, location, mode, playlist, 1 if active else 0, notes, now),
+        (code_clean, name, location, mode, playlist, 1 if active else 0, notes, now, direct_url),
     )
+    conn.commit()
+    conn.close()
+
+
+def refresh_screen_device_urls():
+    conn = connect()
+    base_row = conn.execute("SELECT value FROM settings WHERE key='public_base_url'").fetchone()
+    base_url = (base_row["value"] if base_row else PUBLIC_RENDER_URL).strip().rstrip("/") or PUBLIC_RENDER_URL
+    rows = conn.execute("SELECT code FROM screen_devices").fetchall()
+    for r in rows:
+        conn.execute("UPDATE screen_devices SET url=? WHERE code=?", (f"{base_url}/?view=skjar&device={r['code']}", r["code"]))
     conn.commit()
     conn.close()
 

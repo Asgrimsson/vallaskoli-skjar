@@ -40,7 +40,7 @@ SHORT_WEEKDAYS = ["mán", "þri", "mið", "fim", "fös", "lau", "sun"]
 PRIORITY_ORDER = {"Áríðandi": 3, "Mikilvægt": 2, "Venjulegt": 1}
 SCREEN_MODES = ["Sjálfvirkt", "Anddyri", "Matsalur", "Kennarastofa"]
 
-VERSION = "v1.8"
+VERSION = "v1.9"
 BLOCKS = {
     "menu": "🍽️ Matseðill",
     "weather": "🌦️ Veður",
@@ -170,7 +170,12 @@ def css(mode="Sjálfvirkt", accent_override=None):
         .event-row {{ padding:14px 0; border-bottom:1px solid rgba(15,76,129,.10); font-size:20px; }}
         .thought {{ font-size: clamp(28px, 3.2vw, 54px); font-weight:850; line-height:1.15; color:{accent}; }}
         .muted {{ color:#60758a; }}
-        .image-frame {{ border-radius:28px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.5); }}
+        .image-frame {{ border-radius:28px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.5); animation: cardIn .7s ease both; }}
+        .image-frame img {{ transition: transform 16s ease; }}
+        .image-frame:hover img {{ transform: scale(1.04); }}
+        .image-polaroid {{ background:white; padding:18px 18px 52px; border-radius:22px; transform:rotate(-1deg); box-shadow:0 22px 60px rgba(0,0,0,.16); }}
+        .image-split {{ display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; }}
+        .image-caption-card {{ font-size:clamp(24px,2.4vw,44px); font-weight:950; line-height:1.1; color:#102033; }}
         .caption {{ margin-top:-68px; position:relative; padding:18px 24px; color:white; font-size:26px; font-weight:850; background:linear-gradient(transparent, rgba(0,0,0,.65)); border-radius:0 0 28px 28px; }}
         .emergency {{
             min-height:82vh; display:grid; place-items:center; text-align:center; border-radius:36px; padding:70px;
@@ -363,6 +368,24 @@ def render_ticker(settings, menu, announcements):
     st.markdown(f'<div class="screen-ticker"><div class="ticker-inner">{h(text)}</div></div>', unsafe_allow_html=True)
 
 
+
+def image_row_value(img, key, default=""):
+    try:
+        value = img[key]
+        return value if value is not None else default
+    except Exception:
+        return default
+
+
+def filter_images_by_placement(images, placement):
+    selected = []
+    for img in images:
+        p = image_row_value(img, "placement", "Aðalmyndasýning")
+        if p in (placement, "Alls staðar"):
+            selected.append(img)
+    return selected or list(images)
+
+
 def render_quickstats(settings, weather, events):
     st.markdown('<div class="hero-card">', unsafe_allow_html=True)
     st.markdown('<div class="label">Flýtikubbar</div>', unsafe_allow_html=True)
@@ -395,7 +418,7 @@ def render_block_by_id(block_id, menu, weather, settings, announcements, events,
     elif block_id == "announcements":
         render_announcements(announcements, limit=5 if mode == "Kennarastofa" else 4)
     elif block_id == "images":
-        render_image_panel(images, slide_seconds)
+        render_image_panel(images, slide_seconds, settings.get(f"image_placement_{get_mode_key(mode)}", "Aðalmyndasýning"), settings.get(f"image_layout_{get_mode_key(mode)}", settings.get("image_layout_default", "Stór mynd + texti")))
     elif block_id == "events":
         render_events_panel(events)
     elif block_id == "thought":
@@ -999,16 +1022,30 @@ def render_thought(thoughts):
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-def render_image_panel(images, slide_seconds):
+def render_image_panel(images, slide_seconds, placement="Aðalmyndasýning", layout="Sjálfvirkt"):
+    images = filter_images_by_placement(images, placement)
     if images:
         img = images[int(time.time() / max(7, slide_seconds)) % len(images)]
         path = UPLOAD_DIR / img["filename"]
+        caption = image_row_value(img, "caption", "")
         if path.exists():
-            st.markdown('<div class="image-frame">', unsafe_allow_html=True)
-            st.image(str(path), use_container_width=True)
-            if img["caption"]:
-                st.markdown(f'<div class="caption">{h(img["caption"])}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+            if layout == "Mynd + textaspjald" and caption:
+                st.markdown('<div class="slide-card image-split">', unsafe_allow_html=True)
+                st.image(str(path), use_container_width=True)
+                st.markdown(f'<div class="image-caption-card">{h(caption)}</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            elif layout == "Polaroid":
+                st.markdown('<div class="image-polaroid">', unsafe_allow_html=True)
+                st.image(str(path), use_container_width=True)
+                if caption:
+                    st.markdown(f'<div style="font-size:24px;font-weight:850;color:#102033;margin-top:10px;text-align:center;">{h(caption)}</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="image-frame">', unsafe_allow_html=True)
+                st.image(str(path), use_container_width=True)
+                if caption:
+                    st.markdown(f'<div class="caption">{h(caption)}</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
             return
     st.markdown('<div class="slide-card">', unsafe_allow_html=True)
     st.markdown('<div class="label">Myndasýning</div>', unsafe_allow_html=True)
@@ -1072,7 +1109,7 @@ def screen_page():
     announcements = sorted(db.list_announcements(active_only=True), key=lambda r: PRIORITY_ORDER.get(r["priority"], 1), reverse=True)
     events = get_events(settings)
     thoughts = db.list_thoughts(active_only=True)
-    images = db.list_images(active_only=True)
+    images = db.list_images_for_mode(mode, active_only=True)
     weather = get_weather(settings)
     slide_seconds = int(settings.get("slide_seconds", "12") or 12)
 
@@ -1117,7 +1154,7 @@ def screen_page():
             st.markdown("<br>", unsafe_allow_html=True)
             render_quickstats(settings, weather, events)
         with right:
-            render_image_panel(images, slide_seconds)
+            render_image_panel(images, slide_seconds, settings.get(f"image_placement_{get_mode_key(mode)}", "Aðalmyndasýning"), settings.get(f"image_layout_{get_mode_key(mode)}", settings.get("image_layout_default", "Stór mynd + texti")))
             st.markdown("<br>", unsafe_allow_html=True)
             render_events_panel(events)
 
@@ -1196,7 +1233,7 @@ def quick_announcement_templates():
 def admin_home_dashboard(settings):
     st.subheader("Stjórnborðsheimili")
     st.caption("Hér eru algengustu aðgerðirnar á einum stað — hugsað fyrir þann sem þarf að uppfæra skjáinn hratt.")
-    st.info("Nýtt í v1.7: 📺 Skjápar og QR-tenging. Hver skjár fær eigið auðkenni, tilbúna slóð og QR-kóða svo uppsetning á sjónvörpum verði einföld.")
+    st.info("Nýtt í v1.9: sérslóðir skjáa vistast sjálfkrafa og myndir geta verið merktar á ákveðna skjái/staðsetningar.")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Virkar tilkynningar", len(db.list_announcements(active_only=True)))
@@ -1315,6 +1352,8 @@ def daily_editor(settings):
         st.markdown("### 🖼️ Mynd dagsins")
         uploaded = st.file_uploader("Veldu mynd", type=["png", "jpg", "jpeg", "webp"], key="daily_image_upload")
         caption = st.text_input("Myndatexti", key="daily_image_caption")
+        target_modes_daily = st.multiselect("Hvar á mynd dagsins að birtast?", ["Allir", "Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"], default=["Allir"], key="daily_image_targets")
+        placement_daily = st.selectbox("Staðsetning myndar", ["Aðalmyndasýning", "Hægri hlið", "Bakgrunnur/hero", "Alls staðar"], index=0, key="daily_image_place")
         if st.button("Setja mynd í myndasýningu", use_container_width=True):
             if uploaded:
                 safe_name = f"{int(time.time())}_{uploaded.name.replace(' ', '_')}"
@@ -1322,8 +1361,8 @@ def daily_editor(settings):
                 out.write_bytes(uploaded.getbuffer())
                 try:
                     Image.open(out).verify()
-                    db.add_image(safe_name, caption)
-                    st.success("Myndin er komin í myndasýninguna.")
+                    db.add_image(safe_name, caption, target_modes_daily, placement_daily, 2)
+                    st.success("Myndin er komin í myndasýninguna á valda skjái.")
                     st.rerun()
                 except Exception:
                     out.unlink(missing_ok=True)
@@ -1451,7 +1490,8 @@ def screen_devices_admin(settings):
         )
         if st.form_submit_button("Vista grunnslóð", use_container_width=True):
             db.set_setting("public_base_url", base_url.strip().rstrip("/"))
-            st.success("Grunnslóð vistuð.")
+            db.refresh_screen_device_urls()
+            st.success("Grunnslóð vistuð og sérslóðir skjáa uppfærðar sjálfkrafa.")
             st.rerun()
 
     st.markdown("### Bæta við eða breyta skjá")
@@ -1482,7 +1522,7 @@ def screen_devices_admin(settings):
 
     for d in devices:
         device_url = screen_url(device=d["code"])
-        full_url = absolute_public_url(device_url, settings)
+        full_url = d["url"] if "url" in d.keys() and d["url"] else absolute_public_url(device_url, settings)
         with st.container(border=True):
             c1, c2, c3 = st.columns([1.3, 1.1, .8])
             with c1:
@@ -1618,6 +1658,8 @@ def admin_page():
             animation_style = st.selectbox("Hreyfing / animation", ["Mjúk hreyfing", "Rólegt", "Meiri orka"], index=0)
             show_proverb = st.checkbox("Sýna málshátt/orðtak dagsins á öllum skjám", value=settings.get("show_proverb_all_screens", "1") == "1")
             show_ticker = st.checkbox("Sýna rennilínu neðst með stuttum skilaboðum", value=settings.get("show_ticker", "1") == "1")
+            image_layout = st.selectbox("Myndaútlit", ["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"], index=["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"].index(settings.get(f"image_layout_{key}", settings.get("image_layout_default", "Stór mynd + texti"))) if settings.get(f"image_layout_{key}", settings.get("image_layout_default", "Stór mynd + texti")) in ["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"] else 0)
+            image_placement = st.selectbox("Hvaða myndastaðsetning birtist í þessum ham?", ["Aðalmyndasýning", "Hægri hlið", "Bakgrunnur/hero", "Alls staðar"], index=["Aðalmyndasýning", "Hægri hlið", "Bakgrunnur/hero", "Alls staðar"].index(settings.get(f"image_placement_{key}", "Aðalmyndasýning")) if settings.get(f"image_placement_{key}", "Aðalmyndasýning") in ["Aðalmyndasýning", "Hægri hlið", "Bakgrunnur/hero", "Alls staðar"] else 0)
             st.markdown("#### Röð kubba")
             st.caption("Veldu kubb í hvert sæti. Sama kubb má velja oftar en kerfið fjarlægir tvítekin sæti þegar vistað er.")
             chosen = []
@@ -1625,12 +1667,13 @@ def admin_page():
                 default = current_blocks[i] if i < len(current_blocks) else ""
                 idx = block_options.index(default) if default in block_options else 0
                 chosen.append(st.selectbox(f"Sæti {i+1}", block_options, index=idx, format_func=lambda x: block_labels.get(x, x), key=f"editor_{key}_{i}"))
-            c1, c2, c3, c4 = st.columns(4)
+            c1, c2, c3, c4, c5 = st.columns(5)
             save = c1.form_submit_button("Vista þennan skjáham", use_container_width=True)
             apply_all = c2.form_submit_button("Apply to all screens", use_container_width=True)
             apply_matsalur = c3.form_submit_button("Apply only to Matsalur", use_container_width=True)
-            reset = c4.form_submit_button("Endurstilla", use_container_width=True)
-            if save or apply_all or apply_matsalur:
+            apply_kennarastofa = c4.form_submit_button("Apply only to Kennarastofa", use_container_width=True)
+            reset = c5.form_submit_button("Endurstilla", use_container_width=True)
+            if save or apply_all or apply_matsalur or apply_kennarastofa:
                 cleaned = []
                 for b in chosen:
                     if b and b in BLOCKS and b not in cleaned:
@@ -1647,6 +1690,8 @@ def admin_page():
                     target_modes = ["Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"]
                 elif apply_matsalur:
                     target_modes = ["Matsalur"]
+                elif apply_kennarastofa:
+                    target_modes = ["Kennarastofa"]
                 for target in target_modes:
                     tkey = get_mode_key(target)
                     db.set_setting(f"editor_blocks_{tkey}", json.dumps(cleaned, ensure_ascii=False))
@@ -1654,6 +1699,8 @@ def admin_page():
                     db.set_setting(f"editor_theme_{tkey}", theme)
                     db.set_setting(f"editor_layout_{tkey}", layout_style)
                     db.set_setting(f"editor_animation_{tkey}", animation_style)
+                    db.set_setting(f"image_layout_{tkey}", image_layout)
+                    db.set_setting(f"image_placement_{tkey}", image_placement)
                 st.success("Skjáritstjóri vistaður.")
                 st.rerun()
             if reset:
@@ -1745,6 +1792,9 @@ def admin_page():
         st.subheader("Myndasýning")
         uploaded = st.file_uploader("Hlaða upp mynd", type=["png", "jpg", "jpeg", "webp"])
         caption = st.text_input("Myndatexti")
+        target_modes = st.multiselect("Birta á skjám", ["Allir", "Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"], default=["Allir"], help="Veldu Allir eða ákveðna skjáhama.")
+        placement = st.selectbox("Hvar á myndin helst að birtast?", ["Aðalmyndasýning", "Hægri hlið", "Bakgrunnur/hero", "Alls staðar"], help="Kerfið notar þessa merkingu til að velja réttar myndir í mismunandi kubba.")
+        weight = st.slider("Forgangur myndar", 1, 5, 1, help="Hærri tala birtist oftar/framar í myndalista.")
         if st.button("Vista mynd"):
             if uploaded:
                 safe_name = f"{int(time.time())}_{uploaded.name.replace(' ', '_')}"
@@ -1752,8 +1802,8 @@ def admin_page():
                 out.write_bytes(uploaded.getbuffer())
                 try:
                     Image.open(out).verify()
-                    db.add_image(safe_name, caption)
-                    st.success("Mynd vistuð.")
+                    db.add_image(safe_name, caption, target_modes, placement, weight)
+                    st.success("Mynd vistuð með staðsetningu og skjámerkingu.")
                     st.rerun()
                 except Exception:
                     out.unlink(missing_ok=True)
@@ -1767,6 +1817,7 @@ def admin_page():
                 path = UPLOAD_DIR / img["filename"]
                 if path.exists():
                     st.image(str(path), caption=img["caption"], use_container_width=True)
+                    st.caption(f"Birting: {image_row_value(img, 'target_modes', '[\"Allir\"]')} · Staðsetning: {image_row_value(img, 'placement', 'Aðalmyndasýning')}")
                 if st.button("Eyða mynd", key=f"img_del_{img['id']}"):
                     fname = db.delete_image(img["id"])
                     if fname:
