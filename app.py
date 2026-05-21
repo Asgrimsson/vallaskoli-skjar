@@ -40,7 +40,7 @@ SHORT_WEEKDAYS = ["mán", "þri", "mið", "fim", "fös", "lau", "sun"]
 PRIORITY_ORDER = {"Áríðandi": 3, "Mikilvægt": 2, "Venjulegt": 1}
 SCREEN_MODES = ["Sjálfvirkt", "Anddyri", "Matsalur", "Kennarastofa"]
 
-VERSION = "v1.10"
+VERSION = "v1.12"
 BLOCKS = {
     "menu": "🍽️ Matseðill",
     "weather": "🌦️ Veður",
@@ -227,6 +227,9 @@ def css(mode="Sjálfvirkt", accent_override=None, screen_size="Venjulegur skjár
         .proverb-card:before {{ content:"❦"; position:absolute; right:18px; top:4px; font-size:72px; opacity:.08; color:{accent}; }}
         .proverb-text {{ font-size:clamp({max(18, int(23 * scale))}px,{max(1.65, 2.55 * scale):.2f}vw,{max(26, int(38 * scale))}px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
         .proverb-meaning {{ margin-top:10px; font-size:clamp({max(13, int(16 * scale))}px,{max(1.0, 1.3 * scale):.2f}vw,{max(16, int(21 * scale))}px); color:#40576e; line-height:1.25; }}
+
+        .schedule-card {{ margin-top: 0; }}
+        .schedule-card .big-title {{ margin-bottom: 8px; }}
         .screen-ticker {{ position:fixed; left:{max(10, int(24*scale))}px; right:{max(10, int(24*scale))}px; bottom:{max(8, int(16*scale))}px; z-index:999; border-radius:999px; padding:{max(6, int(10*scale))}px {max(12, int(18*scale))}px; background:rgba(16,32,51,.86); color:#fff; box-shadow:0 15px 45px rgba(0,0,0,.18); overflow:hidden; backdrop-filter:blur(10px); }}
         .ticker-inner {{ white-space:nowrap; display:inline-block; padding-left:100%; animation:ticker 38s linear infinite; font-weight:850; letter-spacing:.02em; }}
         .slide-card .big-title {{ font-size:28px !important; }}
@@ -564,16 +567,16 @@ def render_playlist_screen(settings, mode, playlist_name, menu, weather, announc
         st.markdown(f'<div class="slide-dots">{dots}</div>', unsafe_allow_html=True)
         st.caption(f"Spilunarlisti: {PLAYLISTS.get(playlist_name, playlist_name)} · Nú birtist: {BLOCKS.get(current, current)} · {slide_seconds} sek.")
     with right:
-        st.markdown('<div class="slide-card">', unsafe_allow_html=True)
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
+            render_proverb_card(compact=True)
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="slide-card schedule-card">', unsafe_allow_html=True)
         st.markdown('<div class="label">Dagskrá skjásins</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="big-title" style="font-size:28px;">{h(PLAYLISTS.get(playlist_name, playlist_name))}</div>', unsafe_allow_html=True)
         st.markdown('<div class="label">Næst</div>', unsafe_allow_html=True)
         for b in next_blocks[:3]:
             st.markdown(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
-            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-            render_proverb_card(compact=True)
 
 def render_editor_controlled_screen(settings, mode, menu, weather, announcements, events, thoughts, images):
     blocks = get_editor_blocks(settings, mode)
@@ -591,14 +594,15 @@ def render_editor_controlled_screen(settings, mode, menu, weather, announcements
         st.markdown(f'<div class="slide-dots">{dots}</div>', unsafe_allow_html=True)
         st.caption(f"Nú birtist: {BLOCKS.get(current, current)} · skiptir á {slide_seconds} sekúndum")
     with right:
-        st.markdown('<div class="slide-card">', unsafe_allow_html=True)
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
+            render_proverb_card(compact=True)
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="slide-card schedule-card">', unsafe_allow_html=True)
+        st.markdown('<div class="label">Dagskrá skjásins</div>', unsafe_allow_html=True)
         st.markdown('<div class="label">Næst á skjá</div>', unsafe_allow_html=True)
         for b in next_blocks[:3]:
             st.markdown(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
-            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-            render_proverb_card(compact=True)
 
 def topbar(settings, mode):
     now = datetime.now()
@@ -1135,8 +1139,8 @@ def screen_page():
         playlist_name = resolve_playlist(settings)
     accent = get_playlist_accent(settings, playlist_name) if settings.get("use_playlists", "1") == "1" else get_theme_accent(settings, mode)
     css(mode, accent, settings.get(f"screen_size_{get_mode_key(mode)}", settings.get("screen_size_default", "Venjulegur skjár")), screen_view=True)
-    refresh = int(settings.get("screen_refresh_seconds", "60") or 60)
-    st_autorefresh(interval=max(10, refresh) * 1000, key="screen_refresh")
+    refresh = int(settings.get("screen_refresh_seconds", "8") or 8)
+    st_autorefresh(interval=max(3, refresh) * 1000, key="screen_refresh")
 
     if settings.get("emergency_active", "0") == "1":
         st.markdown(
@@ -2012,7 +2016,7 @@ def admin_page():
             logo_url = st.text_input("Logo slóð", value=settings.get("logo_url", ""), help="Logo birtist uppi í vinstra horni skjásins.")
             screen_mode = st.selectbox("Sjálfgefinn skjáhamur", SCREEN_MODES, index=SCREEN_MODES.index(settings.get("screen_mode", "Sjálfvirkt")) if settings.get("screen_mode", "Sjálfvirkt") in SCREEN_MODES else 0)
             c1, c2 = st.columns(2)
-            refresh = c1.number_input("Sjálfvirk endurhleðsla skjás, sek", min_value=10, max_value=600, value=int(settings.get("screen_refresh_seconds", "60")))
+            refresh = c1.number_input("Sjálfvirk endurhleðsla skjás, sek (hraðari svörun)", min_value=3, max_value=600, value=int(settings.get("screen_refresh_seconds", "8")), help="8 sek. er gott fyrir skjái. 3–5 sek. gefur mjög hraða svörun þegar þú ert að prófa breytingar.")
             slide = c2.number_input("Skipta um áhersluslide á, sek", min_value=5, max_value=120, value=int(settings.get("slide_seconds", "12")))
             st.markdown("#### Veðurstaðsetning")
             c1, c2, c3 = st.columns(3)

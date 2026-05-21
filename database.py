@@ -123,7 +123,7 @@ def init_db():
         "school_name": "Vallaskóli",
         "subtitle": "Upplýsingaskjár",
         "admin_password": "vallaskoli123",
-        "screen_refresh_seconds": "60",
+        "screen_refresh_seconds": "8",
         "slide_seconds": "12",
         "weather_lat": "63.9331",
         "weather_lon": "-20.9971",
@@ -207,6 +207,13 @@ def init_db():
         cur.execute(
             "INSERT INTO settings(key, value) VALUES ('public_base_url', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
             (PUBLIC_RENDER_URL,),
+        )
+
+    # v1.12 speed migration: update old 60-second refresh installs to faster screen updates.
+    refresh_row = cur.execute("SELECT value FROM settings WHERE key='screen_refresh_seconds'").fetchone()
+    if not refresh_row or refresh_row["value"].strip() in ("", "60"):
+        cur.execute(
+            "INSERT INTO settings(key, value) VALUES ('screen_refresh_seconds', '8') ON CONFLICT(key) DO UPDATE SET value=excluded.value"
         )
 
     cur.execute("SELECT COUNT(*) AS c FROM menu_items")

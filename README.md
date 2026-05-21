@@ -1,21 +1,16 @@
-# Vallaskóli Skjár v1.10
+# Vallaskóli Skjár v1.12
 
-Útgáfa með skjáfit / F11 sýningarham.
+Uppfærsla með hraðari svörun og betri röðun á hægri dálki.
 
-Nýtt:
-- Compact TV layout sem passar betur í 16:9 skjái.
-- Minni haus, betra bil og stýrt hámark á kubbum.
-- Minni hliðarkubbar í autoplay svo allt sjáist.
-- Mýkri og léttari skjáhreyfingar áfram virkar.
-- Betri myndahæð í sýningarham svo myndir fari ekki niður fyrir skjá.
+## Nýtt
+- Málsháttur/orðtak dagsins birtist fyrir ofan dagskrá skjásins.
+- Sjálfvirk endurhleðsla skjáa er nú sjálfgefið 8 sekúndur í stað 60 sekúndna.
+- Eldri uppsetningar sem eru enn með 60 sek. uppfærslu færast sjálfkrafa í 8 sek.
+- Hægt er að stilla endurhleðslu niður í 3 sek. í stjórnborði.
+- Skjáir halda áfram að virka í F11 / TV-fit ham.
 
-Keyrsla:
+## Keyrsla
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
-```
-
-Render start command:
-```bash
-streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
 ```
