@@ -68,6 +68,14 @@ THEMES = {
     "Bleikur föstudagur": "#be185d",
 }
 
+SCREEN_SIZE_PRESETS = {
+    "Stór sjónvarpsskjár": {"scale": 1.00, "header": "normal"},
+    "Venjulegur skjár": {"scale": 0.92, "header": "compact"},
+    "Lítill skjár": {"scale": 0.82, "header": "compact"},
+    "Mjög þéttur hamur": {"scale": 0.72, "header": "tight"},
+}
+
+
 PLAYLISTS = {
     "Sjálfgefin": "Sjálfgefin spilun",
     "Morgunspilun": "Morgunspilun",
@@ -88,13 +96,29 @@ def h(value):
     return html.escape(str(value or ""))
 
 
-def css(mode="Sjálfvirkt", accent_override=None):
+def css(mode="Sjálfvirkt", accent_override=None, screen_size="Venjulegur skjár", screen_view=False):
     accent = accent_override or {
         "Anddyri": "#0f4c81",
         "Matsalur": "#2f7d32",
         "Kennarastofa": "#5b3fa3",
         "Sjálfvirkt": "#0f4c81",
     }.get(mode, "#0f4c81")
+    preset = SCREEN_SIZE_PRESETS.get(screen_size, SCREEN_SIZE_PRESETS["Venjulegur skjár"])
+    scale = preset["scale"] if screen_view else 1.0
+    overflow_rule = "hidden" if screen_view else "auto"
+    block_height = "100vh" if screen_view else "auto"
+    block_overflow = "hidden" if screen_view else "visible"
+    main_overflow = "hidden" if screen_view else "auto"
+    column_max_height = f"calc(100vh - {int(190 * scale)}px)" if screen_view else "none"
+    column_overflow = "hidden" if screen_view else "visible"
+    topbar_pad_y = max(8, int(16 * scale))
+    topbar_pad_x = max(14, int(24 * scale))
+    topbar_radius = max(18, int(28 * scale))
+    logo_w = max(62, int(96 * scale))
+    logo_h = max(46, int(72 * scale))
+    card_pad = max(12, int(20 * scale))
+    card_radius = max(18, int(24 * scale))
+    bottom_pad = "3.15rem" if screen_view else "5rem"
     st.markdown(
         f"""
         <style>
@@ -116,22 +140,22 @@ def css(mode="Sjálfvirkt", accent_override=None):
         }}
         [data-testid="stHeader"] {{ background: rgba(255,255,255,0); }}
         [data-testid="stSidebar"] {{ background:#0b172a; }}
-        html, body {{ overflow:hidden; }}
-        [data-testid="stAppViewContainer"] > .main {{ overflow:hidden; }}
-        .block-container {{ padding: .62rem 1.15rem 3.15rem; max-width: 1580px; height:100vh; overflow:hidden; }}
+        html, body {{ overflow:{overflow_rule} !important; }}
+        [data-testid="stAppViewContainer"] > .main {{ overflow:{main_overflow} !important; }}
+        .block-container {{ padding: .62rem 1.15rem {bottom_pad}; max-width: 1580px; height:{block_height}; overflow:{block_overflow} !important; }}
         .element-container {{ margin-bottom:.38rem !important; }}
-        div[data-testid="column"] {{ max-height: calc(100vh - 190px); overflow:hidden; }}
+        div[data-testid="column"] {{ max-height: {column_max_height}; overflow:{column_overflow}; }}
         .hero-card, .admin-card, .slide-card, .small-card {{
             background: var(--card);
             border: 1px solid rgba(15,76,129,.12);
             box-shadow: 0 18px 55px rgba(15,76,129,.12);
-            border-radius: 24px;
-            padding: 20px;
+            border-radius: {card_radius}px;
+            padding: {card_pad}px;
             animation: cardIn .65s cubic-bezier(.2,.8,.2,1) both;
         }}
         .topbar {{
             display:flex; align-items:flex-start; justify-content:space-between; gap:28px;
-            padding: 16px 24px; border-radius: 28px;
+            padding: {topbar_pad_y}px {topbar_pad_x}px; border-radius: {topbar_radius}px;
             background:
               radial-gradient(circle at 8% 15%, rgba(255,255,255,.22), transparent 24%),
               linear-gradient(135deg, {accent}, #1b75bb 58%, #0b4f7d);
@@ -140,8 +164,8 @@ def css(mode="Sjálfvirkt", accent_override=None):
             animation: fadeSlideIn .75s ease both;
         }}
         .topbar:after {{ content:""; position:absolute; inset:-60% -20%; background:linear-gradient(110deg, transparent, rgba(255,255,255,.18), transparent); transform:translateX(-70%); animation: shimmer 7s ease-in-out infinite; }}
-        .brand {{ display:flex; align-items:center; gap:18px; position:relative; z-index:2; min-width:0; }}
-        .logo-badge {{ width:96px; height:72px; border-radius:20px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12), 0 12px 32px rgba(0,0,0,.16); overflow:hidden; padding:7px; flex:0 0 auto; }}
+        .brand {{ display:flex; align-items:center; gap:{max(12, int(18 * scale))}px; position:relative; z-index:2; min-width:0; }}
+        .logo-badge {{ width:{logo_w}px; height:{logo_h}px; border-radius:20px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12), 0 12px 32px rgba(0,0,0,.16); overflow:hidden; padding:7px; flex:0 0 auto; }}
         .logo-badge img {{ max-width:100%; max-height:100%; object-fit:contain; display:block; }}
         .admin-quick {{ background:linear-gradient(135deg, rgba(15,76,129,.08), rgba(255,200,87,.12)); border:1px solid rgba(15,76,129,.12); border-radius:22px; padding:18px; margin-bottom:14px; }}
         .admin-quick h3 {{ margin:0 0 6px; }}
@@ -157,16 +181,16 @@ def css(mode="Sjálfvirkt", accent_override=None):
         .slide-dots {{ display:flex; gap:8px; justify-content:center; margin:12px 0 4px; }}
         .slide-dot {{ width:12px; height:12px; border-radius:999px; background:rgba(15,76,129,.18); }}
         .slide-dot.active {{ background:{accent}; transform:scale(1.35); }}
-        .brand-title {{ font-size: clamp(30px, 4vw, 48px); line-height:.98; font-weight:950; letter-spacing:-.05em; margin-bottom:6px; }}
-        .brand-sub {{ font-size: clamp(16px, 1.35vw, 21px); opacity:.90; margin-top:2px; line-height:1.25; }}
+        .brand-title {{ font-size: clamp({max(22, int(30 * scale))}px, {max(2.5, 4 * scale):.2f}vw, {max(32, int(48 * scale))}px); line-height:.98; font-weight:950; letter-spacing:-.05em; margin-bottom:6px; }}
+        .brand-sub {{ font-size: clamp({max(13, int(16 * scale))}px, {max(1.0, 1.35 * scale):.2f}vw, {max(16, int(21 * scale))}px); opacity:.90; margin-top:2px; line-height:1.25; }}
         .clock {{ text-align:right; position:relative; z-index:2; }}
-        .clock-time {{ font-size: clamp(28px, 4vw, 54px); font-weight:900; letter-spacing:-.05em; line-height:.9; }}
+        .clock-time {{ font-size: clamp({max(20, int(28 * scale))}px, {max(2.4, 4 * scale):.2f}vw, {max(34, int(54 * scale))}px); font-weight:900; letter-spacing:-.05em; line-height:.9; }}
         .clock-date {{ font-size:16px; opacity:.88; margin-top:8px; }}
         .mode-pill {{ display:inline-block; background:rgba(255,255,255,.20); padding:7px 13px; border-radius:999px; margin-top:8px; font-weight:900; backdrop-filter:blur(8px); }}
         .metric {{ font-size: clamp(32px, 4.2vw, 58px); font-weight: 900; letter-spacing:-.05em; color:{accent}; line-height:1; }}
         .label {{ text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:900; color:#557086; }}
-        .big-title {{ font-size: clamp(26px, 3.5vw, 48px); font-weight: 950; letter-spacing:-.045em; color:#102033; line-height:1.02; margin-bottom:12px; }}
-        .body-large {{ font-size: clamp(20px, 2.05vw, 32px); line-height:1.22; color:#20364d; }}
+        .big-title {{ font-size: clamp({max(20, int(26 * scale))}px, {max(2.1, 3.5 * scale):.2f}vw, {max(31, int(48 * scale))}px); font-weight: 950; letter-spacing:-.045em; color:#102033; line-height:1.02; margin-bottom:12px; }}
+        .body-large {{ font-size: clamp({max(16, int(20 * scale))}px, {max(1.35, 2.05 * scale):.2f}vw, {max(23, int(32 * scale))}px); line-height:1.22; color:#20364d; }}
         .announcement {{ border-left: 10px solid #1b75bb; padding:18px 20px; border-radius:18px; background:#f8fbff; margin-bottom:14px; }}
         .announcement.urgent {{ border-left-color:#dc3545; background:#fff5f5; }}
         .pill {{ display:inline-block; padding:7px 12px; border-radius:999px; background:#e8f3ff; color:{accent}; font-size:14px; font-weight:900; margin-right:8px; }}
@@ -201,14 +225,14 @@ def css(mode="Sjálfvirkt", accent_override=None):
             animation: cardIn .7s ease both;
         }}
         .proverb-card:before {{ content:"❦"; position:absolute; right:18px; top:4px; font-size:72px; opacity:.08; color:{accent}; }}
-        .proverb-text {{ font-size:clamp(23px,2.55vw,38px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
-        .proverb-meaning {{ margin-top:10px; font-size:clamp(16px,1.3vw,21px); color:#40576e; line-height:1.25; }}
-        .screen-ticker {{ position:fixed; left:24px; right:24px; bottom:16px; z-index:999; border-radius:999px; padding:10px 18px; background:rgba(16,32,51,.86); color:#fff; box-shadow:0 15px 45px rgba(0,0,0,.18); overflow:hidden; backdrop-filter:blur(10px); }}
+        .proverb-text {{ font-size:clamp({max(18, int(23 * scale))}px,{max(1.65, 2.55 * scale):.2f}vw,{max(26, int(38 * scale))}px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
+        .proverb-meaning {{ margin-top:10px; font-size:clamp({max(13, int(16 * scale))}px,{max(1.0, 1.3 * scale):.2f}vw,{max(16, int(21 * scale))}px); color:#40576e; line-height:1.25; }}
+        .screen-ticker {{ position:fixed; left:{max(10, int(24*scale))}px; right:{max(10, int(24*scale))}px; bottom:{max(8, int(16*scale))}px; z-index:999; border-radius:999px; padding:{max(6, int(10*scale))}px {max(12, int(18*scale))}px; background:rgba(16,32,51,.86); color:#fff; box-shadow:0 15px 45px rgba(0,0,0,.18); overflow:hidden; backdrop-filter:blur(10px); }}
         .ticker-inner {{ white-space:nowrap; display:inline-block; padding-left:100%; animation:ticker 38s linear infinite; font-weight:850; letter-spacing:.02em; }}
         .slide-card .big-title {{ font-size:28px !important; }}
         .slide-card .block-chip {{ font-size:13px; padding:6px 9px; }}
-        .slide-card, .hero-card, .proverb-card, .small-card {{ max-height: calc(100vh - 220px); overflow:hidden; }}
-        .image-frame img, .image-polaroid img {{ max-height: calc(100vh - 270px); width:100%; object-fit:cover; }}
+        .slide-card, .hero-card, .proverb-card, .small-card {{ max-height: calc(100vh - {int(220 * scale)}px); overflow:hidden; }}
+        .image-frame img, .image-polaroid img {{ max-height: calc(100vh - {int(270 * scale)}px); width:100%; object-fit:cover; }}
         .screen-ticker {{ left:18px; right:18px; bottom:10px; padding:8px 16px; font-size:14px; }}
         .slide-dots {{ margin:7px 0 2px; }}
         .slide-dot {{ width:9px; height:9px; }}
@@ -1110,7 +1134,7 @@ def screen_page():
     else:
         playlist_name = resolve_playlist(settings)
     accent = get_playlist_accent(settings, playlist_name) if settings.get("use_playlists", "1") == "1" else get_theme_accent(settings, mode)
-    css(mode, accent)
+    css(mode, accent, settings.get(f"screen_size_{get_mode_key(mode)}", settings.get("screen_size_default", "Venjulegur skjár")), screen_view=True)
     refresh = int(settings.get("screen_refresh_seconds", "60") or 60)
     st_autorefresh(interval=max(10, refresh) * 1000, key="screen_refresh")
 
@@ -1620,7 +1644,7 @@ def screen_connection_guide(settings):
 
 def admin_page():
     settings = db.get_settings()
-    css(settings.get("screen_mode", "Sjálfvirkt"), get_theme_accent(settings, settings.get("screen_mode", "Sjálfvirkt")))
+    css(settings.get("screen_mode", "Sjálfvirkt"), get_theme_accent(settings, settings.get("screen_mode", "Sjálfvirkt")), screen_view=False)
     if not st.session_state.get("admin"):
         login_box()
         return
@@ -1663,7 +1687,7 @@ def admin_page():
 
     with tabs[5]:
         st.subheader("Skjáritstjóri")
-        st.caption("Veldu hvað birtist í hverjum skjáham, í hvaða röð, hversu lengi og með hvaða þema.")
+        st.caption("Veldu hvað birtist í hverjum skjáham, í hvaða röð, hversu lengi, með hvaða þema og hvaða skjástærð. Þessi síða er nú skrollanleg í stjórnborði; aðeins skjáhamur læsir skjánum í F11.")
         mode_to_edit = st.selectbox("Veldu skjáham til að stilla", ["Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"])
         key = get_mode_key(mode_to_edit)
         current_blocks = get_editor_blocks(settings, mode_to_edit)
@@ -1680,6 +1704,15 @@ def admin_page():
             seconds = st.number_input("Hversu lengi birtist hver kubbur?", min_value=5, max_value=120, value=get_editor_seconds(settings, mode_to_edit), step=1)
             layout_style = st.selectbox("Útlitsstilling", ["Deluxe", "Standard", "Compact"], index=0, help="Fyrir næstu útgáfur: deluxe gefur stærri, sjónrænni skjá; compact hentar smærri skjám.")
             animation_style = st.selectbox("Hreyfing / animation", ["Mjúk hreyfing", "Rólegt", "Meiri orka"], index=0)
+            current_screen_size = settings.get(f"screen_size_{key}", settings.get("screen_size_default", "Venjulegur skjár"))
+            if current_screen_size not in SCREEN_SIZE_PRESETS:
+                current_screen_size = "Venjulegur skjár"
+            screen_size = st.selectbox(
+                "Skjástærð / F11 sýningarhamur",
+                list(SCREEN_SIZE_PRESETS.keys()),
+                index=list(SCREEN_SIZE_PRESETS.keys()).index(current_screen_size),
+                help="Veldu þéttari ham ef eitthvað fer niður fyrir skjáinn í F11. 'Mjög þéttur hamur' er fyrir minni skjái eða skjái með litla upplausn."
+            )
             show_proverb = st.checkbox("Sýna málshátt/orðtak dagsins á öllum skjám", value=settings.get("show_proverb_all_screens", "1") == "1")
             show_ticker = st.checkbox("Sýna rennilínu neðst með stuttum skilaboðum", value=settings.get("show_ticker", "1") == "1")
             image_layout = st.selectbox("Myndaútlit", ["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"], index=["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"].index(settings.get(f"image_layout_{key}", settings.get("image_layout_default", "Stór mynd + texti"))) if settings.get(f"image_layout_{key}", settings.get("image_layout_default", "Stór mynd + texti")) in ["Stór mynd + texti", "Mynd + textaspjald", "Polaroid"] else 0)
@@ -1709,6 +1742,8 @@ def admin_page():
                 db.set_setting("show_ticker", "1" if show_ticker else "0")
                 db.set_setting(f"editor_layout_{key}", layout_style)
                 db.set_setting(f"editor_animation_{key}", animation_style)
+                db.set_setting(f"screen_size_{key}", screen_size)
+                db.set_setting("screen_size_default", screen_size)
                 target_modes = [mode_to_edit]
                 if apply_all:
                     target_modes = ["Anddyri", "Matsalur", "Kennarastofa", "Sjálfvirkt"]
@@ -1723,6 +1758,7 @@ def admin_page():
                     db.set_setting(f"editor_theme_{tkey}", theme)
                     db.set_setting(f"editor_layout_{tkey}", layout_style)
                     db.set_setting(f"editor_animation_{tkey}", animation_style)
+                    db.set_setting(f"screen_size_{tkey}", screen_size)
                     db.set_setting(f"image_layout_{tkey}", image_layout)
                     db.set_setting(f"image_placement_{tkey}", image_placement)
                 st.success("Skjáritstjóri vistaður.")
@@ -1731,6 +1767,7 @@ def admin_page():
                 db.set_setting(f"editor_blocks_{key}", json.dumps(DEFAULT_BLOCKS_BY_MODE.get(mode_to_edit, DEFAULT_BLOCKS_BY_MODE["Sjálfvirkt"]), ensure_ascii=False))
                 db.set_setting(f"editor_seconds_{key}", settings.get("slide_seconds", "12"))
                 db.set_setting(f"editor_theme_{key}", "")
+                db.set_setting(f"screen_size_{key}", "Venjulegur skjár")
                 st.success("Skjáhamur endurstilltur.")
                 st.rerun()
 
