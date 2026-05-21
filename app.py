@@ -40,7 +40,7 @@ SHORT_WEEKDAYS = ["mán", "þri", "mið", "fim", "fös", "lau", "sun"]
 PRIORITY_ORDER = {"Áríðandi": 3, "Mikilvægt": 2, "Venjulegt": 1}
 SCREEN_MODES = ["Sjálfvirkt", "Anddyri", "Matsalur", "Kennarastofa"]
 
-VERSION = "v1.9"
+VERSION = "v1.10"
 BLOCKS = {
     "menu": "🍽️ Matseðill",
     "weather": "🌦️ Veður",
@@ -116,28 +116,32 @@ def css(mode="Sjálfvirkt", accent_override=None):
         }}
         [data-testid="stHeader"] {{ background: rgba(255,255,255,0); }}
         [data-testid="stSidebar"] {{ background:#0b172a; }}
-        .block-container {{ padding-top: 1.05rem; max-width: 1540px; }}
+        html, body {{ overflow:hidden; }}
+        [data-testid="stAppViewContainer"] > .main {{ overflow:hidden; }}
+        .block-container {{ padding: .62rem 1.15rem 3.15rem; max-width: 1580px; height:100vh; overflow:hidden; }}
+        .element-container {{ margin-bottom:.38rem !important; }}
+        div[data-testid="column"] {{ max-height: calc(100vh - 190px); overflow:hidden; }}
         .hero-card, .admin-card, .slide-card, .small-card {{
             background: var(--card);
             border: 1px solid rgba(15,76,129,.12);
             box-shadow: 0 18px 55px rgba(15,76,129,.12);
-            border-radius: 28px;
-            padding: 30px;
+            border-radius: 24px;
+            padding: 20px;
             animation: cardIn .65s cubic-bezier(.2,.8,.2,1) both;
         }}
         .topbar {{
             display:flex; align-items:flex-start; justify-content:space-between; gap:28px;
-            padding: 26px 34px; border-radius: 34px;
+            padding: 16px 24px; border-radius: 28px;
             background:
               radial-gradient(circle at 8% 15%, rgba(255,255,255,.22), transparent 24%),
               linear-gradient(135deg, {accent}, #1b75bb 58%, #0b4f7d);
             color: white; box-shadow: 0 24px 70px rgba(15,76,129,.28);
-            margin-bottom: 22px; position:relative; overflow:hidden;
+            margin-bottom: 12px; position:relative; overflow:hidden;
             animation: fadeSlideIn .75s ease both;
         }}
         .topbar:after {{ content:""; position:absolute; inset:-60% -20%; background:linear-gradient(110deg, transparent, rgba(255,255,255,.18), transparent); transform:translateX(-70%); animation: shimmer 7s ease-in-out infinite; }}
-        .brand {{ display:flex; align-items:center; gap:24px; position:relative; z-index:2; min-width:0; }}
-        .logo-badge {{ width:112px; height:86px; border-radius:22px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12), 0 12px 32px rgba(0,0,0,.16); overflow:hidden; padding:8px; flex:0 0 auto; }}
+        .brand {{ display:flex; align-items:center; gap:18px; position:relative; z-index:2; min-width:0; }}
+        .logo-badge {{ width:96px; height:72px; border-radius:20px; background:white; display:grid; place-items:center; color:{accent}; font-weight:900; font-size:25px; box-shadow: inset 0 0 0 2px rgba(15,76,129,.12), 0 12px 32px rgba(0,0,0,.16); overflow:hidden; padding:7px; flex:0 0 auto; }}
         .logo-badge img {{ max-width:100%; max-height:100%; object-fit:contain; display:block; }}
         .admin-quick {{ background:linear-gradient(135deg, rgba(15,76,129,.08), rgba(255,200,87,.12)); border:1px solid rgba(15,76,129,.12); border-radius:22px; padding:18px; margin-bottom:14px; }}
         .admin-quick h3 {{ margin:0 0 6px; }}
@@ -153,22 +157,22 @@ def css(mode="Sjálfvirkt", accent_override=None):
         .slide-dots {{ display:flex; gap:8px; justify-content:center; margin:12px 0 4px; }}
         .slide-dot {{ width:12px; height:12px; border-radius:999px; background:rgba(15,76,129,.18); }}
         .slide-dot.active {{ background:{accent}; transform:scale(1.35); }}
-        .brand-title {{ font-size: clamp(36px, 5vw, 64px); line-height:.95; font-weight:950; letter-spacing:-.05em; margin-bottom:10px; }}
-        .brand-sub {{ font-size: clamp(18px, 1.7vw, 24px); opacity:.90; margin-top:2px; line-height:1.25; }}
+        .brand-title {{ font-size: clamp(30px, 4vw, 48px); line-height:.98; font-weight:950; letter-spacing:-.05em; margin-bottom:6px; }}
+        .brand-sub {{ font-size: clamp(16px, 1.35vw, 21px); opacity:.90; margin-top:2px; line-height:1.25; }}
         .clock {{ text-align:right; position:relative; z-index:2; }}
-        .clock-time {{ font-size: clamp(34px, 5vw, 72px); font-weight:900; letter-spacing:-.05em; line-height:.9; }}
-        .clock-date {{ font-size:20px; opacity:.88; margin-top:8px; }}
-        .mode-pill {{ display:inline-block; background:rgba(255,255,255,.20); padding:10px 16px; border-radius:999px; margin-top:14px; font-weight:900; backdrop-filter:blur(8px); }}
-        .metric {{ font-size: clamp(36px, 5vw, 76px); font-weight: 900; letter-spacing:-.05em; color:{accent}; line-height:1; }}
+        .clock-time {{ font-size: clamp(28px, 4vw, 54px); font-weight:900; letter-spacing:-.05em; line-height:.9; }}
+        .clock-date {{ font-size:16px; opacity:.88; margin-top:8px; }}
+        .mode-pill {{ display:inline-block; background:rgba(255,255,255,.20); padding:7px 13px; border-radius:999px; margin-top:8px; font-weight:900; backdrop-filter:blur(8px); }}
+        .metric {{ font-size: clamp(32px, 4.2vw, 58px); font-weight: 900; letter-spacing:-.05em; color:{accent}; line-height:1; }}
         .label {{ text-transform:uppercase; letter-spacing:.14em; font-size:13px; font-weight:900; color:#557086; }}
-        .big-title {{ font-size: clamp(30px, 4.2vw, 62px); font-weight: 950; letter-spacing:-.045em; color:#102033; line-height:1.02; margin-bottom:12px; }}
-        .body-large {{ font-size: clamp(22px, 2.4vw, 38px); line-height:1.22; color:#20364d; }}
+        .big-title {{ font-size: clamp(26px, 3.5vw, 48px); font-weight: 950; letter-spacing:-.045em; color:#102033; line-height:1.02; margin-bottom:12px; }}
+        .body-large {{ font-size: clamp(20px, 2.05vw, 32px); line-height:1.22; color:#20364d; }}
         .announcement {{ border-left: 10px solid #1b75bb; padding:18px 20px; border-radius:18px; background:#f8fbff; margin-bottom:14px; }}
         .announcement.urgent {{ border-left-color:#dc3545; background:#fff5f5; }}
         .pill {{ display:inline-block; padding:7px 12px; border-radius:999px; background:#e8f3ff; color:{accent}; font-size:14px; font-weight:900; margin-right:8px; }}
         .pill-red {{ background:#ffe5e5; color:#b02a37; }}
-        .event-row {{ padding:14px 0; border-bottom:1px solid rgba(15,76,129,.10); font-size:20px; }}
-        .thought {{ font-size: clamp(28px, 3.2vw, 54px); font-weight:850; line-height:1.15; color:{accent}; }}
+        .event-row {{ padding:9px 0; border-bottom:1px solid rgba(15,76,129,.10); font-size:18px; }}
+        .thought {{ font-size: clamp(24px, 2.75vw, 42px); font-weight:850; line-height:1.15; color:{accent}; }}
         .muted {{ color:#60758a; }}
         .image-frame {{ border-radius:28px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,.16); border:1px solid rgba(255,255,255,.5); animation: cardIn .7s ease both; }}
         .image-frame img {{ transition: transform 16s ease; }}
@@ -192,15 +196,44 @@ def css(mode="Sjálfvirkt", accent_override=None):
             background:
               radial-gradient(circle at top left, rgba(255,200,87,.30), transparent 34%),
               linear-gradient(135deg, rgba(255,255,255,.96), rgba(238,247,255,.88));
-            border:1px solid rgba(185,133,0,.22); border-radius:28px; padding:26px;
+            border:1px solid rgba(185,133,0,.22); border-radius:24px; padding:18px;
             box-shadow:0 18px 55px rgba(15,76,129,.12); position:relative; overflow:hidden;
             animation: cardIn .7s ease both;
         }}
         .proverb-card:before {{ content:"❦"; position:absolute; right:18px; top:4px; font-size:72px; opacity:.08; color:{accent}; }}
-        .proverb-text {{ font-size:clamp(26px,3vw,48px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
-        .proverb-meaning {{ margin-top:14px; font-size:clamp(18px,1.6vw,25px); color:#40576e; line-height:1.25; }}
+        .proverb-text {{ font-size:clamp(23px,2.55vw,38px); line-height:1.08; font-weight:950; color:#102033; letter-spacing:-.03em; }}
+        .proverb-meaning {{ margin-top:10px; font-size:clamp(16px,1.3vw,21px); color:#40576e; line-height:1.25; }}
         .screen-ticker {{ position:fixed; left:24px; right:24px; bottom:16px; z-index:999; border-radius:999px; padding:10px 18px; background:rgba(16,32,51,.86); color:#fff; box-shadow:0 15px 45px rgba(0,0,0,.18); overflow:hidden; backdrop-filter:blur(10px); }}
         .ticker-inner {{ white-space:nowrap; display:inline-block; padding-left:100%; animation:ticker 38s linear infinite; font-weight:850; letter-spacing:.02em; }}
+        .slide-card .big-title {{ font-size:28px !important; }}
+        .slide-card .block-chip {{ font-size:13px; padding:6px 9px; }}
+        .slide-card, .hero-card, .proverb-card, .small-card {{ max-height: calc(100vh - 220px); overflow:hidden; }}
+        .image-frame img, .image-polaroid img {{ max-height: calc(100vh - 270px); width:100%; object-fit:cover; }}
+        .screen-ticker {{ left:18px; right:18px; bottom:10px; padding:8px 16px; font-size:14px; }}
+        .slide-dots {{ margin:7px 0 2px; }}
+        .slide-dot {{ width:9px; height:9px; }}
+        .stCaption, [data-testid="stCaptionContainer"] {{ font-size:12px !important; line-height:1.15 !important; }}
+        .compact-side-note {{ font-size:14px; color:#60758a; line-height:1.25; }}
+        @media (min-width: 1200px) {{
+          .topbar {{ min-height:104px; }}
+          .block-container {{ padding-left: 1.6rem; padding-right:1.6rem; }}
+        }}
+        @media (max-height: 780px) {{
+          .topbar {{ padding:12px 20px; margin-bottom:8px; border-radius:24px; }}
+          .logo-badge {{ width:78px; height:58px; }}
+          .brand-title {{ font-size: clamp(28px, 3.2vw, 40px); margin-bottom:3px; }}
+          .brand-sub {{ font-size:16px; }}
+          .mode-pill {{ margin-top:5px; padding:5px 11px; font-size:13px; }}
+          .hero-card, .admin-card, .slide-card, .small-card, .proverb-card {{ padding:16px; border-radius:22px; }}
+          .big-title {{ font-size: clamp(24px, 3vw, 40px); margin-bottom:8px; }}
+          .body-large {{ font-size: clamp(18px, 1.8vw, 28px); }}
+          .label {{ font-size:11px; }}
+          .clock-time {{ font-size:36px; }}
+          .clock-date {{ font-size:14px; }}
+          div[data-testid="column"] {{ max-height: calc(100vh - 150px); }}
+          .slide-card, .hero-card, .proverb-card, .small-card {{ max-height: calc(100vh - 180px); }}
+          .image-frame img, .image-polaroid img {{ max-height: calc(100vh - 225px); }}
+        }}
         @keyframes fadeSlideIn {{ from {{ opacity:0; transform:translateY(-16px); }} to {{ opacity:1; transform:translateY(0); }} }}
         @keyframes cardIn {{ from {{ opacity:0; transform:translateY(22px) scale(.985); }} to {{ opacity:1; transform:translateY(0) scale(1); }} }}
         @keyframes shimmer {{ 0%,55% {{ transform:translateX(-70%); }} 75%,100% {{ transform:translateX(70%); }} }}
@@ -500,7 +533,7 @@ def render_playlist_screen(settings, mode, playlist_name, menu, weather, announc
     current = blocks[idx]
     next_blocks = [blocks[(idx + i) % len(blocks)] for i in range(1, min(4, len(blocks)) + 1)]
 
-    left, right = st.columns([1.18, .82], gap="large")
+    left, right = st.columns([1.28, .72], gap="medium")
     with left:
         render_block_by_id(current, menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
         dots = "".join(f'<span class="slide-dot {"active" if i == idx else ""}"></span>' for i in range(len(blocks)))
@@ -509,18 +542,14 @@ def render_playlist_screen(settings, mode, playlist_name, menu, weather, announc
     with right:
         st.markdown('<div class="slide-card">', unsafe_allow_html=True)
         st.markdown('<div class="label">Dagskrá skjásins</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="big-title" style="font-size:34px;">{h(PLAYLISTS.get(playlist_name, playlist_name))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="big-title" style="font-size:28px;">{h(PLAYLISTS.get(playlist_name, playlist_name))}</div>', unsafe_allow_html=True)
         st.markdown('<div class="label">Næst</div>', unsafe_allow_html=True)
-        for b in next_blocks:
+        for b in next_blocks[:3]:
             st.markdown(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown('<br>', unsafe_allow_html=True)
-        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb" and "proverb" not in blocks:
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
             render_proverb_card(compact=True)
-            st.markdown('<br>', unsafe_allow_html=True)
-        side_candidates = [b for b in ["proverb", "images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
-        if side_candidates:
-            render_block_by_id(side_candidates[0], menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
 
 def render_editor_controlled_screen(settings, mode, menu, weather, announcements, events, thoughts, images):
     blocks = get_editor_blocks(settings, mode)
@@ -531,7 +560,7 @@ def render_editor_controlled_screen(settings, mode, menu, weather, announcements
     current = blocks[idx]
     next_blocks = [blocks[(idx + i) % len(blocks)] for i in range(1, min(3, len(blocks)) + 1)]
 
-    left, right = st.columns([1.18, .82], gap="large")
+    left, right = st.columns([1.28, .72], gap="medium")
     with left:
         render_block_by_id(current, menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
         dots = "".join(f'<span class="slide-dot {"active" if i == idx else ""}"></span>' for i in range(len(blocks)))
@@ -540,17 +569,12 @@ def render_editor_controlled_screen(settings, mode, menu, weather, announcements
     with right:
         st.markdown('<div class="slide-card">', unsafe_allow_html=True)
         st.markdown('<div class="label">Næst á skjá</div>', unsafe_allow_html=True)
-        for b in next_blocks:
+        for b in next_blocks[:3]:
             st.markdown(f'<span class="block-chip">{h(BLOCKS.get(b,b))}</span>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown('<br>', unsafe_allow_html=True)
-        # Sýnum alltaf nytsamlegan aukakubb við hliðina án þess að trufla aðalspilun.
-        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb" and "proverb" not in blocks:
+        if settings.get("show_proverb_all_screens", "1") == "1" and current != "proverb":
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
             render_proverb_card(compact=True)
-            st.markdown('<br>', unsafe_allow_html=True)
-        side_candidates = [b for b in ["proverb", "images", "events", "weather", "announcements", "menu"] if b in blocks and b != current]
-        if side_candidates:
-            render_block_by_id(side_candidates[0], menu, weather, settings, announcements, events, thoughts, images, slide_seconds, mode)
 
 def topbar(settings, mode):
     now = datetime.now()

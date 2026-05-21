@@ -1,47 +1,21 @@
-# Vallaskóli Skjár v1.9
+# Vallaskóli Skjár v1.10
 
-Upplýsingaskjár fyrir Vallaskóla með stjórnborði, skjáauðkennum, sjálfvirkum sérslóðum, matseðli, veðri, viðburðum, myndasýningu og skjáritstjóra.
+Útgáfa með skjáfit / F11 sýningarham.
 
-## Nýtt í v1.9
+Nýtt:
+- Compact TV layout sem passar betur í 16:9 skjái.
+- Minni haus, betra bil og stýrt hámark á kubbum.
+- Minni hliðarkubbar í autoplay svo allt sjáist.
+- Mýkri og léttari skjáhreyfingar áfram virkar.
+- Betri myndahæð í sýningarham svo myndir fari ekki niður fyrir skjá.
 
-- Sérslóðir fyrir alla staðlaða skjái vistast sjálfkrafa í gagnagrunni.
-- Opinber grunnslóð er sjálfgefið `https://vallaskoli-skjar.onrender.com`.
-- Skjáir sem stofnast sjálfkrafa:
-  - ANDDYRI-01
-  - MATSALUR-01
-  - KENNARASTOFA-01
-  - GANGUR-YNGRA-01
-  - GANGUR-ELDRA-01
-  - SKRIFSTOFA-01
-- Betri myndastýring:
-  - velja hvaða skjáhamir eiga að sýna mynd
-  - velja staðsetningu myndar: aðalmyndasýning, hægri hlið, bakgrunnur/hero eða alls staðar
-  - forgangur mynda
-  - fleiri myndaútlit í skjáritstjóra
-- Skjáritstjóri með Apply to all screens, Apply only to Matsalur og Apply only to Kennarastofa.
-
-## Keyrsla staðbundið
-
+Keyrsla:
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Render start command
-
+Render start command:
 ```bash
 streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
 ```
-
-## Mikilvægt við uppfærslu
-
-Haldið í þessar möppur ef gögn eru komin inn:
-
-```text
-data/
-uploads/
-```
-
-Render sér um að deploy-a sjálfkrafa þegar breytingum er ýtt á GitHub.
